@@ -7,7 +7,9 @@ import (
     "database/sql"
     _ "github.com/mattn/go-sqlite3"
     "encoding/json"
-    // "net/url"
+    "net/url"
+    "io/ioutil"
+    "encoding/xml"
 )
 
 type Page struct {
@@ -16,10 +18,10 @@ type Page struct {
 }
 
 type SearchResult struct {
-    Title string
-    Author string
-    Year string
-    ID string
+    Title string `xml:"title,attr"`
+    Author string `xml:"author,attr"`
+    Year string `xml:"hyr,attr"`
+    ID string `xml:"owi,attr"`
 }
 
 func main() {
@@ -42,11 +44,11 @@ func main() {
     })
 
     http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
-        results := []SearchResult{
-            SearchResult{"The Beach", "Alex Garland", "1998", "234233"},
-            SearchResult{"1984", "George Orwell", "1948", "213236"},
-            SearchResult{"Trainspotting", "Irvine Welsh", "1994", "234662"},
-            SearchResult{"Quiet", "Susan Cain", "2009", "231453"},
+        var results []SearchResult
+        var err error
+
+        if results, err = search(r.FormValue("search")); err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
         }
 
         encoder := json.NewEncoder(w)
@@ -58,22 +60,26 @@ func main() {
     fmt.Println(http.ListenAndServe(":8080", nil))
 }
 
-// type ClassifySearchResponse struct {
-//     Results []SearchResult `xml:"works>work"`
-// }
+type ClassifySearchResponse struct {
+    Results []SearchResult `xml:"works>work"`
+}
 
-// func search(query string) ([]SearchResult, error) {
-//     var resp *http.Response
-//     var err error
-//     baseUrl := "http://classify.oclc.org/classify2/Classify?&summary=true&title="
+func search(query string) ([]SearchResult, error) {
+    var resp *http.Response
+    var err error
+    baseUrl := "http://classify.oclc.org/classify2/Classify?&summary=true&title="
 
-//     if resp, err = http.Get(baseUrl + url.QueryEscape(query)); err != nil {
-//         return []SearchResult{}, err
-//     }
+    if resp, err = http.Get(baseUrl + url.QueryEscape(query)); err != nil {
+        return []SearchResult{}, err
+    }
 
-//     defer resp.Body.Close()
-//     var body []byte
-//     if body, err = ioutil.ReadAll(resp.Body); err != nil {
-//         return []SearchResult{}, err
-//     }
-// }
+    defer resp.Body.Close()
+    var body []byte
+    if body, err = ioutil.ReadAll(resp.Body); err != nil {
+        return []SearchResult{}, err
+    }
+
+    var c ClassifySearchResponse
+    err = xml.Unmarshal(body, &c)
+    return c.Results, err
+}
