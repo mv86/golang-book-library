@@ -1,37 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>First Go Site</title>
-  <style>
+= doctype html
+
+html lang=en
+head
+  = css
     #search-results tr:hover {
       background-color: lightgrey;
       cursor: pointer;
     }
-  </style>
-</head>
-<body>
-  <h1>Hello {{.Name}}!</h1>
 
-  <form id="search-form" onsubmit="return false">
-    <input name="search"/>
-    <input type="submit" value="Search" onclick="submitSearch()" />
-  </form>
+  h1 Hello {{.Name}}!
 
-  <table width="100%">
-    <thead>
-      <tr style="text-align: left;">
-        <th width="35%">Title</th>
-        <th width="30%">Author</th>
-        <th width="15%">Year</th>
-        <th width="15%">ID</th>
-      </tr>
-    </thead>
-    <tbody id="search-results"></tbody>
-  </table>
+  form id="search-form" onsubmit="return false"
+    input name="search"
+    input type="submit" value="Search" onclick="submitSearch()"
 
-  <script type="text/javascript" src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
-  <script type="text/javascript">
+  table width="100%"
+    thead
+      tr style="text-align: left;"
+        th width="35%" Title
+        th width="30%" Author
+        th width="15%" Year
+        th width="15%" ID
+    tbody id="search-results"
+
+  script type="text/javascript" src="http://code.jquery.com/jquery-3.2.1.min.js"
+  = javascript
     function submitSearch() {
       $.ajax({
         url: "/search",
@@ -59,6 +52,3 @@
       });
       return false;
     }
-  </script>
-</body>
-</html>
